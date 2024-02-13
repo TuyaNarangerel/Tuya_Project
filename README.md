@@ -1,5 +1,5 @@
-# Tuya_Project
- # Shape Calculator
+# Tuya_Projekt1 - Inlämning (omgång 3)
+## Shape Calculator
 
 En enkel konsolapplikation för att skapa, visa, uppdatera och ta bort geometriska former.
 
