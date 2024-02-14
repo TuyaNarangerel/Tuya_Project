@@ -32,8 +32,8 @@ namespace Tuya_Project1.Data
 				Console.Clear();
 				Console.WriteLine("Game Menu");
 				Console.WriteLine("(Sten vinner över sax, sax vinner över påse och påse vinner över sten.)");
-               
-                Console.WriteLine("1. Play Sten Sax Påse");
+
+				Console.WriteLine("1. Play Sten Sax Påse");
 				Console.WriteLine("2. Show All Games");
 				Console.WriteLine("3. Back to Main Menu");
 				Console.WriteLine("0. Exit");
@@ -56,123 +56,106 @@ namespace Tuya_Project1.Data
 						Environment.Exit(0);
 						break;
 					default:
-						Console.WriteLine("Invalid selection. Please try again.");
+						Console.WriteLine("Whoops! Seems like that wasn't the right choice. Let's give it another shot, shall we?");
 						break;
 				}
 
 				if (running)
 				{
 					Console.WriteLine("Press any key to continue...");
-					
+					Console.ReadKey();
 				}
 			}
 		}
-			private void PlayStenSaxPåse()
+
+		private void PlayStenSaxPåse()
+		{
+			Console.Clear();
+			Console.WriteLine("Choose Sten, Sax, or Påse:");
+			Console.WriteLine("1. Sten");
+			Console.WriteLine("2. Sax");
+			Console.WriteLine("3. Påse");
+
+			var playerChoice = Console.ReadLine();
+
+			if (!int.TryParse(playerChoice, out int choiceNumber) || choiceNumber < 1 || choiceNumber > 3)
 			{
-				Console.WriteLine("Choose Sten, Sax, or Påse: ");
-				string userChoice = Console.ReadLine()?.ToLower();
-				string computerChoice = GetComputerChoice();
-
-				Console.WriteLine($"Computer choose {computerChoice}");
-
-				string result = DetermineWinner(userChoice, computerChoice);
-				Console.WriteLine(result);
-
-				SaveStenSaxPåseGame(userChoice, computerChoice, result);
-
-				
-				Console.WriteLine("Press any key to continue...");
-				Console.ReadKey();
+				Console.WriteLine("Invalid selection. Please enter a number between 1 and 3.");
+				return;
 			}
+
+			string[] choices = { "Sten", "Sax", "Påse" };
+			string playerChoiceString = choices[choiceNumber - 1];
+
+			string[] computerChoices = { "Sten", "Sax", "Påse" };
+			Random random = new Random();
+			int computerChoiceIndex = random.Next(computerChoices.Length);
+			string computerChoice = computerChoices[computerChoiceIndex];
+
+			string outcome = DetermineOutcome(playerChoiceString, computerChoice);
+
+			SaveGame(playerChoiceString, computerChoice, outcome);
+
+			Console.WriteLine($"Player choice: {playerChoiceString}");
+			Console.WriteLine($"Computer choice: {computerChoice}");
+			Console.WriteLine($"Outcome: {outcome}");
+		}
+
+		private string DetermineOutcome(string playerChoice, string computerChoice)
+		{
+			if ((playerChoice == "Sten" && computerChoice == "Sax") ||
+				(playerChoice == "Sax" && computerChoice == "Påse") ||
+				(playerChoice == "Påse" && computerChoice == "Sten"))
+			{
+				return "Player wins!";
+			}
+			else if ((computerChoice == "Sten" && playerChoice == "Sax") ||
+					 (computerChoice == "Sax" && playerChoice == "Påse") ||
+					 (computerChoice == "Påse" && playerChoice == "Sten"))
+			{
+				return "Computer wins!";
+			}
+			else
+			{
+				return "It's a draw!";
+			}
+		}
+
+		private void SaveGame(string playerChoice, string computerChoice, string outcome)
+		{
+			var game = new StenSaxPåse
+			{
+				PlayerChoice = playerChoice,
+				ComputerChoice = computerChoice,
+				Outcome = outcome,
+				GameDate = DateTime.Now
+			};
+
+			_context.StenSaxPåseGames.Add(game);
+			_context.SaveChanges();
+		}
 
 		private void ShowAllGames()
 		{
 			var games = _context.StenSaxPåseGames.ToList();
-			if (!games.Any())
-			{
-				Console.WriteLine("No games found.");
-				return;
-			}
 
-			Console.WriteLine($"{"Player's Choice",-15} {"Computer's Choice",-18} {"Outcome",-12} {"Date",-20}");
-			Console.WriteLine(new string('-', 72));
+			Console.WriteLine("{0,-4} {1,-15} {2,-15} {3,-15} {4,-20}", "Id", "Player Choice", "Computer Choice", "Outcome", "Date");
+			Console.WriteLine("------------------------------------------------------------------");
 
 			foreach (var game in games)
 			{
-				Console.WriteLine($"{game.PlayerChoice,-15} {game.ComputerChoice,-18} {game.Outcome,-12} {game.GameDate.ToString("dd/MM/yyyy HH:mm:ss"),-20}");
+				Console.WriteLine("{0,-4} {1,-15} {2,-15} {3,-15} {4,-20}",
+					game.Id,
+					game.PlayerChoice,
+					game.ComputerChoice,
+					game.Outcome,
+					game.GameDate.ToString("yyyy-MM-dd HH:mm:ss"));
 			}
 
-			CalculateAndDisplayWinRates(games);
-
-			Console.WriteLine("Press any key to return the menu...");
-			Console.ReadKey();
-
-		}
-
-		private void CalculateAndDisplayWinRates(List<StenSaxPåse> games)
-
-		{ 
-			int playerWins = games.Count(game => game.Outcome == "You win!");
-			int computerWins = games.Count(game => game.Outcome.Contains("Computer wins"));
-			int totalGames = games.Count;
-
-			double averageWinRateAgainstComputer = playerWins / (double)totalGames;
-			double averageWinRateAgainstPlayer = computerWins / (double)totalGames;
-
-			Console.WriteLine($"\nAverage win rate against the computer: {averageWinRateAgainstComputer:P}");
-			Console.WriteLine($"Average win rate against the player: {averageWinRateAgainstPlayer:P}");
-
-        }
-
-			private string GetComputerChoice()
+			if (!games.Any())
 			{
-				int choice = _random.Next(3);
-				switch (choice)
-				{
-					case 0:
-						return "sten";
-					case 1:
-						return "sax";
-					case 2:
-						return "påse";
-					default:
-						return "sten";
-				}
-			}
-
-			private string DetermineWinner(string user, string computer)
-			{
-				if (user == computer)
-				{
-					return "It's a Tie!";
-				}
-
-				string winningOutcome;
-				if (_winningOutComes.TryGetValue(user, out winningOutcome))
-				{
-					if (computer == winningOutcome)
-					{
-						return "You win!";
-					}
-				}
-
-				return "Computer wins!";
-			}
-
-			private void SaveStenSaxPåseGame(string playerChoice, string computerChoice, string outcome)
-			{
-				var game = new StenSaxPåse
-				{
-					PlayerChoice = playerChoice,
-					ComputerChoice = computerChoice,
-					Outcome = outcome,
-					GameDate = DateTime.Now,
-				};
-
-				_context.StenSaxPåseGames.Add(game);
-				_context.SaveChanges();
-
-				Console.WriteLine("Game result saved in the database.");
+				Console.WriteLine("No games found.");
 			}
 		}
 	}
+}

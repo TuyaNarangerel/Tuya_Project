@@ -48,7 +48,7 @@ namespace Tuya_Project1.Menu
 						running = false;
 						break;
 					default:
-						Console.WriteLine("Invalid selection. Please try again.");
+						Console.WriteLine("Whoops! Seems like that wasn't the right choice. Let's give it another shot, shall we?");
 						break;
 				}
 

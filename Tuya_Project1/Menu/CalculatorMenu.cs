@@ -48,7 +48,7 @@ namespace Tuya_Project1.Menu
 						running = false;
 						break;
 					default:
-						Console.WriteLine("Invalid selection. Please try again.");
+						Console.WriteLine("Oops! That's not the droid you're looking for. Try again with a valid choice!");
 						break;
 				}
 
@@ -114,7 +114,7 @@ namespace Tuya_Project1.Menu
 				case "0":
 					return;
 				default:
-					Console.WriteLine("Invalid selection. Please try again.");
+					Console.WriteLine("Oops! That's not the droid you're looking for. Try again with a valid choice!");
 					return;
 			}
 			
@@ -135,7 +135,7 @@ namespace Tuya_Project1.Menu
 			Console.Write($"Enter operand 1: ");
 			if (!double.TryParse(Console.ReadLine(), out num1))
 			{
-                Console.WriteLine("Invalid input. Please enter a valid number.");
+                Console.WriteLine("Oops! That's not the droid you're looking for. Try again with a valid choice!");
 				return;
             }
 
@@ -144,9 +144,19 @@ namespace Tuya_Project1.Menu
 				Console.Write($"Enter operand 2: ");
 				if (!double.TryParse(Console.ReadLine(), out num2))
 				{
-                    Console.WriteLine("Invalid input. Please enter a valid number");
+                    Console.WriteLine("Oops! That's not the droid you're looking for. Try again with a valid choice!");
 					return;
                 }
+
+				if (operationName == "Modulus")
+				{
+					if (num2 == 0)
+					{
+                        Console.WriteLine("Oops! Division by zero detected. Please choose a valid option.");
+						return;
+                    }
+				}
+
 				result = operation(num1, num2);
 			}
 			else
@@ -155,25 +165,40 @@ namespace Tuya_Project1.Menu
 			}
 
 			SaveToDatabase(operationName, num1, num2, result);
-            Console.WriteLine($"{operationName} Result: {result:F2}");
+			if (operationName == "Modulus")
+			{
+				Console.WriteLine($"{operationName} Result: {result:F0}");
+			}
+			else
+			{
+				Console.WriteLine($"{operationName} Result: {result:F2}");
+			}
         }
 
 		private void SaveToDatabase(string operation, double num1, double num2, double result)
 		{
-			var calculator = new Data.Calculator
+			if (double.IsFinite(result))
 			{
-				Operation = operation,
-				Num1 = num1,
-				Num2 = num2,
-				Result = result,
-				CalculationDate = DateTime.Now
-			};
 
-			_context.Calculators.Add(calculator);
-			_context.SaveChanges();
+				var calculator = new Data.Calculator
+				{
+					Operation = operation,
+					Num1 = num1,
+					Num2 = num2,
+					Result = result,
+					CalculationDate = DateTime.Now
+				};
+
+				_context.Calculators.Add(calculator);
+				_context.SaveChanges();
+			}
+			else
+			{
+				Console.WriteLine("Oh no! Something went wrong. We can't save infinite values to the database. Please try a different calculation.");
+			}
 		}
 
-		private void UpdateCalculation()
+            private void UpdateCalculation()
 		{
 			Console.Clear();
 			ShowAllCalculations();
@@ -186,7 +211,7 @@ namespace Tuya_Project1.Menu
 
 			if (!int.TryParse(choice, out int calculatorId) || calculatorId <= 0)
 			{
-				Console.WriteLine("Invalid input. Please enter a valid calculator ID.");
+				Console.WriteLine("Oops! Looks like that's not a valid calculator ID. Please enter a valid one.");
 				Console.WriteLine("Press any key to continue...");
 				Console.ReadKey();
 				return;
@@ -224,7 +249,7 @@ namespace Tuya_Project1.Menu
 					PerformUpdateOperation(existingCalculation, updateChoice);
 					break;
 				default:
-					Console.WriteLine("Invalid selection. Please try again.");
+					Console.WriteLine("Oops! That's not the droid you're looking for. Try again with a valid choice!");
 					Console.WriteLine("Press any key to continue...");
 					Console.ReadKey();
 					break;
@@ -241,7 +266,7 @@ namespace Tuya_Project1.Menu
 			Console.Write($"Enter operand 1 ({operationName}): ");
 			if (!double.TryParse(Console.ReadLine(), out double num1))
 			{
-				Console.WriteLine("Invalid input. Please enter a valid number.");
+				Console.WriteLine("Oops! It seems like that's not a valid number. Please enter a valid one.");
 				return;
 			}
 
@@ -250,7 +275,7 @@ namespace Tuya_Project1.Menu
 				Console.Write($"Enter operand 2 ({operationName}): ");
 				if (!double.TryParse(Console.ReadLine(), out double num2))
 				{
-					Console.WriteLine("Invalid input. Please enter a valid number.");
+					Console.WriteLine("Oops! It seems like that's not a valid number. Please enter a valid one.");
 					return;
 				}
 
@@ -291,7 +316,7 @@ namespace Tuya_Project1.Menu
 
 			if (!int.TryParse(Console.ReadLine(), out int calculatorId) || calculatorId < 0)
 			{
-				Console.WriteLine("Invalid input. Please enter a valid calculator ID.");
+				Console.WriteLine("Oops! That doesn't look like a valid calculator ID. Please enter a valid one.");
 				return;
 			}
 

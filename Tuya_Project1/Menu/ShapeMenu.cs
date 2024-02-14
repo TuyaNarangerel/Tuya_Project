@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Query.Internal;
@@ -54,7 +55,7 @@ namespace Tuya_Project1.Menu
 						running = false;
 						break;
 					default:
-						Console.WriteLine("Invalid selection. Please try again.");
+						Console.WriteLine("Oopsie! Looks like that wasn't the right move. Give it another go, and let's make it right this time!");
 						break;
 				}
 			}
@@ -146,7 +147,7 @@ namespace Tuya_Project1.Menu
 			Console.Write("Enter shape ID to update: ");
 			if (!int.TryParse(Console.ReadLine(), out int shapeId))
 			{
-				Console.WriteLine("Invalid input. Please enter a valid ID.");
+				Console.WriteLine("Whoops! That ID seems to be playing hide and seek. Please enter a valid one, and let's keep the game going!");
 				Console.ReadKey();
 				return;
 			}
@@ -173,7 +174,7 @@ namespace Tuya_Project1.Menu
 
 					if (newBase <= 0 || newHeight <= 0)
 					{
-						Console.WriteLine("Invalid input. Please enter valid positive values for base and height.");
+						Console.WriteLine("Oops! Need valid positive base and height values.");
 					}
 					else
 					{
@@ -196,7 +197,7 @@ namespace Tuya_Project1.Menu
 			else
 			{
 				Console.WriteLine("Invalid input. Please enter a valid positive number for base.");
-				
+
 			}
 			Console.WriteLine("\nPress any key to continue...");
 			Console.ReadKey();
@@ -215,16 +216,18 @@ namespace Tuya_Project1.Menu
 			DisplayShapeTable(shapes);
 
 		}
-		private bool IsValidInput(string input)
+		private static bool IsValidInput(string input)
 		{
-			if (!double.TryParse(input, out double value) || value < 0)
+			if (!double.TryParse(input, out double value) || value <= 0)
 			{
 				Console.WriteLine("Invalid input. Please enter a valid positive number.");
+				Console.ReadKey();
 				return false;
 			}
-			return true;
+			else { return true; }
+			
 		}
-	
+
 		private double CalculateArea(string type, double baseLength, double height)
 		{
 			switch (type)
@@ -240,28 +243,41 @@ namespace Tuya_Project1.Menu
 					return 0;
 			}
 		}
-
+		private bool CheckValid(double length, double width) 
+		{
+		if ( width <= 0 || length <= 0 )
+		{
+				Console.WriteLine("Invalid input. Please enter valid positive values for width and height.");
+				return true;
+		}
+		else { return false; }
+}
 		private double CalculatePerimeter(string type, double baseLength, double height)
 		{
-			switch (type)
-			{
-				case "Rectangle":
-				case "Parallelogram":
-					return 2 * (baseLength + height);
-				case "Rhombus":
-					return 4 * baseLength;
-				case "Triangle":
-					return baseLength + height + Math.Sqrt(baseLength * baseLength + height * height);
-				default:
-					Console.WriteLine("Unsupported shape type for perimeter calculation.");
-					return 0;
-			}
+			
+				switch (type)
+				{
+					case "Rectangle":
+					case "Parallelogram":
+						return 2 * (baseLength + height);
+					case "Rhombus":
+						return 4 * baseLength;
+					case "Triangle":
+						return baseLength + height + Math.Sqrt(baseLength * baseLength + height * height);
+					default:
+						Console.WriteLine("Unsupported shape type for perimeter calculation.");
+						return 0;
+				}
+			
+			
+				
 		}
 
 		private void AddRectangle()
 		{
 			Console.Write("Enter rectangle width: ");
 			string widthInput = Console.ReadLine();
+
 			if (IsValidInput(widthInput))
 			{
 				double width = double.Parse(widthInput);
@@ -271,13 +287,12 @@ namespace Tuya_Project1.Menu
 				if (IsValidInput(heightInput))
 				{
 					double height = double.Parse(heightInput);
-
-					if (width <= 0 || height <= 0)
+					
+					if (width == height)
 					{
-						Console.WriteLine("Invalid input. Please enter valid positive values for width and height.");
-						Console.ReadKey();
+                        Console.WriteLine("The base and height of a rectangle cannot be the same.");
 						return;
-					}
+                    }
 
 					var rectangle = new Shape
 					{
@@ -296,10 +311,7 @@ namespace Tuya_Project1.Menu
 					Console.WriteLine("Rectangle added successfully!");
 					Console.ReadKey();
 				}
-				else
-				{
-					Console.WriteLine("invalid input. Please enter a valid positive number.");
-				}
+				
 			}
 		}
 
@@ -307,6 +319,7 @@ namespace Tuya_Project1.Menu
 		{
 			Console.WriteLine("Enter parallelogram base: ");
 			string baseInput = Console.ReadLine();
+
 			if (IsValidInput(baseInput))
 			{
 				double baseLength = double.Parse(baseInput);
@@ -318,21 +331,32 @@ namespace Tuya_Project1.Menu
 				{
 					double height = double.Parse(heightInput);
 
-					var parallelogram = new Shape
+					var existingParallelogram = _context.Shapes.FirstOrDefault(s => s.Type == "Parallelogram" && s.Base == baseLength && s.Height == height);
+
+					if (existingParallelogram != null)
 					{
-						Type = "Parallelogram",
-						Base = baseLength,
-						Height = height,
-						Area = CalculateArea("Parallelogram", baseLength, height),
-						Perimeter = CalculatePerimeter("Parallelogram", baseLength, height),
-						CalculationDate = DateTime.Now
-					};
+						Console.WriteLine("The base and height of a parallelogram cannot be the same.");
+					}
 
-					_context.Shapes.Add(parallelogram);
-					_context.SaveChanges();
+					else
+					{
 
-					DisplayShapeInfo(parallelogram);
-					Console.WriteLine("Parallelogram added successfully!");
+						var parallelogram = new Shape
+						{
+							Type = "Parallelogram",
+							Base = baseLength,
+							Height = height,
+							Area = CalculateArea("Parallelogram", baseLength, height),
+							Perimeter = CalculatePerimeter("Parallelogram", baseLength, height),
+							CalculationDate = DateTime.Now
+						};
+
+						_context.Shapes.Add(parallelogram);
+						_context.SaveChanges();
+
+						DisplayShapeInfo(parallelogram);
+						Console.WriteLine("Parallelogram added successfully!");
+					}
 					Console.ReadKey();
 				}
 				else

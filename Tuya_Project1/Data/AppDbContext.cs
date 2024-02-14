@@ -43,12 +43,15 @@ namespace Tuya_Project1.Data
                 .IsRequired()
                 .HasMaxLength(100);
 
-            modelBuilder.Entity<Calculator>()
+			modelBuilder.Entity<Calculator>()
+				.Property(c => c.Result)
+				.HasColumnType("float");
+
+			modelBuilder.Entity<Calculator>()
                 .Property(c => c.CalculationDate)
                 .HasDefaultValueSql("GETDATE()");
 
-
-            modelBuilder.Entity<StenSaxPåse>()
+			modelBuilder.Entity<StenSaxPåse>()
                 .HasKey(g => g.Id);
 
             modelBuilder.Entity<StenSaxPåse>()
