@@ -123,7 +123,6 @@ namespace Tuya_Project1.Data
 
 		private void SaveGame(string playerChoice, string computerChoice, string outcome)
 		{
-			string gameOutcome = DetermineOutcome(playerChoice, computerChoice);
 			var game = new StenSaxPåse
 			{
 				PlayerChoice = playerChoice,
@@ -141,7 +140,7 @@ namespace Tuya_Project1.Data
 			var games = _context.StenSaxPåseGames.ToList();
 
 			Console.WriteLine("{0,-4} {1,-15} {2,-15} {3,-15} {4,-20}", "Id", "Player Choice", "Computer Choice", "Outcome", "Date");
-			Console.WriteLine("------------------------------------------------------------------");
+			Console.WriteLine("-------------------------- ----------------------------------------");
 
 			foreach (var game in games)
 			{
@@ -166,7 +165,8 @@ namespace Tuya_Project1.Data
 		{
 			var games = _context.StenSaxPåseGames.ToList();
 			int totalGames = games.Count;
-			int totalWins = games.Count(g => g.Outcome.Contains("win"));
+			int totalWins = games.Count(g => g.Outcome.Equals("Player wins!", StringComparison.OrdinalIgnoreCase) ||
+									  g.Outcome.Equals("You win!", StringComparison.OrdinalIgnoreCase));
 
 			return totalGames == 0 ? 0 : (double)totalWins / totalGames;
 		}
