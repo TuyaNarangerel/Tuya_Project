@@ -123,6 +123,7 @@ namespace Tuya_Project1.Data
 
 		private void SaveGame(string playerChoice, string computerChoice, string outcome)
 		{
+			string gameOutcome = DetermineOutcome(playerChoice, computerChoice);
 			var game = new StenSaxPåse
 			{
 				PlayerChoice = playerChoice,
@@ -156,6 +157,19 @@ namespace Tuya_Project1.Data
 			{
 				Console.WriteLine("No games found.");
 			}
+
+			double averageWins = CalculateAverageWins();
+            Console.WriteLine($"Average Player Wins: {averageWins:P}");
+        }
+
+		private double CalculateAverageWins()
+		{
+			var games = _context.StenSaxPåseGames.ToList();
+			int totalGames = games.Count;
+			int totalWins = games.Count(g => g.Outcome.Contains("win"));
+
+			return totalGames == 0 ? 0 : (double)totalWins / totalGames;
 		}
+
 	}
 }
