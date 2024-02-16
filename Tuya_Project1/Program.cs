@@ -1,27 +1,26 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Tuya_Project1.Data;
-using Tuya_Project1.Menu;
+using Tuya_Project1;
+using Microsoft.EntityFrameworkCore;
 
-namespace Tuya_Project1
+class Program
 {
-	public class Program
+	static void Main()
 	{
-		static void Main()
-		{
-			var configuration = new ConfigurationBuilder()
-				.AddJsonFile("appsettings.json")
-				.Build();
+		var configuration = new ConfigurationBuilder()
+			.AddJsonFile("appsettings.json")
+			.Build();
 
-			var startUp = new StartUp(configuration);
-			var services = new ServiceCollection();
-			startUp.ConfigureServices(services);
+		var services = new ServiceCollection();
+		services.AddDbContext<AppDbContext>(options =>
+			options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
-			var serviceProvider = services.BuildServiceProvider();	
+		services.AddTransient<Application>();
 
-			var mainMenu = new MainMenu(serviceProvider.GetRequiredService<AppDbContext>());
-			mainMenu.Show();
-			}
-		}
+		var serviceProvider = services.BuildServiceProvider();
+				
+		var app = serviceProvider.GetService<Application>();
+		app.Run();
 	}
+}
